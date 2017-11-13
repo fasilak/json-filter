@@ -1,5 +1,6 @@
 var express = require('express');
 var bodyParser = require('body-parser');
+var filterController = require('./controller/filterController')
 var app = express();
 
 app.set('port', (process.env.PORT || 5000));
@@ -24,20 +25,7 @@ app.set('views', __dirname + '/views');
 app.set('view engine', 'ejs');
 
 
-//TODO
-//Move it to a controller
 
-const concatAddress = (address) =>
-{
-    let output = ``
-    output += address.buildingNumber ? `${address.buildingNumber} ` : ``
-    output += address.street ? `${address.street} ` : ``
-    output += address.suburb ? `${address.suburb} ` : ``
-    output += address.state ? `${address.state} ` : ``
-    output += address.postcode ? `${address.postcode} ` : ``
-    return output.trim()
-
-}
 
 const sendJsonParseError = (res) => {
     res.status(400).send({
@@ -50,30 +38,7 @@ const sendJsonParseError = (res) => {
 
 
 
-app.post('/processdata', function(request, response){
-
-    let parsedData = {}
-    if(request.body.payload instanceof  Array) {
-        let filteredPayload = request.body.payload.reduce(function (filteredItems, item) {
-            if (item.workflow === 'completed' && item.type === 'htv') {
-                filteredItems.push({
-                    concataddress: concatAddress(item.address),
-                    type: item.type,
-                    workflow: item.workflow
-                })
-            }
-            return filteredItems
-        }, [])
-
-        parsedData.response = filteredPayload
-    } else {
-       return sendJsonParseError(response)
-    }
-
-    response.send(parsedData)
-
-
-});
+app.post('/processdata', filterController.processData);
 
 
 app.get('/', function(request, response) {
